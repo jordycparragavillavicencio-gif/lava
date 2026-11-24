@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Lámpara de Lava Animada - Alexander Párraga</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --wax-main: #ff6a00;
+      --wax-light: #ff9e2c;
+      --wax-dark: #b82900;
+      --liquid-top: #240c03;
+      --liquid-bot: #4f1b06;
+      --glow-color: rgba(255, 106, 0, 0.58);
+      --glow-soft: rgba(255, 158, 44, 0.24);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background-color: #07080f;
+      color: #f8fafc;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    /* Fondo oscuro elegante #07080f que adapta su atmósfera al color elegido */
+    .ambient-backdrop {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 48%, var(--glow-soft) 0%, rgba(7, 8, 15, 0) 64%),
+        radial-gradient(ellipse at 50% 90%, rgba(255, 255, 255, 0.025) 0%, transparent 55%),
+        #07080f;
+      z-index: 0;
+      pointer-events: none;
+      transition: background 0.6s ease;
+    }
+
+    /* Partículas ambientales flotantes */
+    #ambientParticles {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .font-display {
+      font-family: 'Fredoka', sans-serif;
+    }
+
+    .academic-title {
+      color: #ffffff;
+      text-shadow:
+        0 3px 16px var(--glow-color),
+        0 0 32px var(--glow-soft);
+      letter-spacing: 0.04em;
+      transition: text-shadow 0.45s ease;
+    }
+
+    .course-badge {
+      color: var(--wax-light);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1.5px solid var(--wax-main);
+      box-shadow: 0 0 16px var(--glow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      transition: all 0.45s ease;
+    }
+
+    /* Escenario central de la lámpara ilustrada */
+    .lamp-stage {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 340px;
+      padding: 0 12px;
+    }
+
+    /* Halo luminoso animado alrededor de la lámpara */
+    .lamp-aura {
+      position: absolute;
+      top: 48%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 265px;
+      height: 410px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, var(--glow-color) 0%, var(--glow-soft) 45%, transparent 74%);
+      filter: blur(22px);
+      pointer-events: none;
+      z-index: -1;
+      transition: background 0.5s ease;
+      animation: pulseAura 4.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulseAura {
+      0% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.85; }
+      100% { transform: translate(-50%, -50%) scale(1.06); opacity: 1; }
+    }
+
+    /* Tapa superior metálica ilustrada */
+    .lamp-cap {
+      width: 90px;
+      height: 42px;
+      background: linear-gradient(90deg, #171a26 0%, #373e54 26%, #7d89ad 45%, #454e69 68%, #151824 100%);
+      clip-path: polygon(24% 0%, 76% 0%, 100% 100%, 0% 100%);
+      border-top: 2px solid rgba(255, 255, 255, 0.55);
+      position: relative;
+      z-index: 5;
+      margin-bottom: -2px;
+      box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.65);
+    }
+
+    .lamp-cap::before {
+      content: '';
+      position: absolute;
+      top: 4px;
+      left: 34%;
+      width: 7px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.42);
+      border-radius: 999px;
+      transform: rotate(-13deg);
+    }
+
+    /* Cuerpo de cristal estilizado */
+    .lamp-glass-shell {
+      position: relative;
+      width: 196px;
+      height: 326px;
+      cursor: pointer;
+      filter: drop-shadow(0 12px 26px rgba(0, 0, 0, 0.85));
+      transition: transform 0.2s ease;
+    }
+
+    .lamp-glass-shell:active {
+      transform: scale(0.992);
+    }
+
+    .lamp-glass {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+      clip-path: polygon(
+        26% 0%,
+        74% 0%,
+        98% 72%,
+        83% 100%,
+        17% 100%,
+        2% 72%
+      );
+      background: linear-gradient(180deg, var(--liquid-top) 0%, var(--liquid-bot) 100%);
+      transition: background 0.5s ease;
+    }
+
+    /* Capa de cera con filtro SVG gooey/metaballs */
+    .gooey-stage {
+      position: absolute;
+      inset: -12px;
+      filter: url(#gooey-lava);
+      will-change: transform;
+    }
+
+    canvas#lavaCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Resplandor de calor de la base del líquido */
+    .bulb-glow-floor {
+      position: absolute;
+      bottom: -6px;
+      left: 10%;
+      right: 10%;
+      height: 62px;
+      background: radial-gradient(ellipse at 50% 90%, var(--wax-light) 0%, var(--glow-color) 48%, transparent 78%);
+      mix-blend-mode: screen;
+      opacity: 0.8;
+      pointer-events: none;
+      z-index: 3;
+      transition: background 0.5s ease;
+    }
+
+    .glass-illustration-overlay {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    /* Cuello superior de la base metálica ilustrada */
+    .lamp-base-top {
+      width: 134px;
+      height: 34px;
+      margin-top: -2px;
+      background: linear-gradient(90deg, #151824 0%, #343b50 25%, #7985a8 45%, #40485f 70%, #131620 100%);
+      clip-path: polygon(0% 0%, 100% 0%, 82% 100%, 18% 100%);
+      border-top: 2.5px solid var(--wax-light);
+      position: relative;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.5s ease;
+    }
+
+    .base-indicator-dots {
+      display: flex;
+      gap: 7px;
+    }
+
+    .base-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--wax-light);
+      box-shadow: 0 0 8px var(--wax-main);
+      transition: all 0.5s ease;
+    }
+
+    /* Pedestal inferior ilustrado */
+    .lamp-base-bottom {
+      width: 160px;
+      height: 48px;
+      margin-top: -1px;
+      background: linear-gradient(90deg, #12151e 0%, #2c3244 25%, #697494 45%, #363d52 70%, #10121a 100%);
+      clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%);
+      border-bottom: 2.5px solid #4e5773;
+      position: relative;
+      z-index: 5;
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.88);
+    }
+
+    .lamp-base-bottom::before {
+      content: '';
+      position: absolute;
+      top: 4px;
+      left: 29%;
+      width: 8px;
+      height: 38px;
+      background: rgba(255, 255, 255, 0.32);
+      border-radius: 999px;
+      transform: rotate(15deg);
+    }
+
+    .floor-shadow {
+      width: 204px;
+      height: 15px;
+      margin-top: -5px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.9) 25%, var(--glow-soft) 68%, transparent 82%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Barra compacta inferior de controles */
+    .controls-panel {
+      background: rgba(14, 17, 28, 0.84);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    /* Cuadrícula de 16 colores: 8 columnas x 2 filas en móvil, 16 o 8x2 limpias en PC */
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 7px;
+      justify-items: center;
+    }
+
+    .color-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      border: 2px solid rgba(255, 255, 255, 0.28);
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+      position: relative;
+    }
+
+    .color-btn:hover {
+      transform: scale(1.16);
+      border-color: #ffffff;
+    }
+
+    .color-btn.active {
+      transform: scale(1.22);
+      border-color: #ffffff;
+      box-shadow: 0 0 12px var(--btn-glow, rgba(255, 255, 255, 0.85));
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(255, 255, 255, 0.16);
+      height: 5px;
+      border-radius: 999px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: var(--wax-light);
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 10px var(--glow-color);
+      cursor: pointer;
+    }
+
+    .action-btn {
+      transition: all 0.2s ease;
+    }
+
+    .action-btn.cycle-on {
+      background: var(--wax-main);
+      color: #07080f;
+      border-color: #ffffff;
+      box-shadow: 0 0 14px var(--glow-color);
+    }
+
+    @media (max-height: 730px) {
+      .lamp-glass-shell { width: 164px; height: 264px; }
+      .lamp-cap { width: 76px; height: 34px; }
+      .lamp-base-top { width: 112px; height: 28px; }
+      .lamp-base-bottom { width: 134px; height: 40px; }
+      .color-btn { width: 23px; height: 23px; }
+    }
+  </style>
+</head>
+<body class="py-2.5 px-3 sm:py-4">
+
+  <!-- Filtro SVG Gooey / Metaballs para fusión orgánica -->
+  <svg width="0" height="0" style="position:absolute; pointer-events:none;" aria-hidden="true">
+    <defs>
+      <filter id="gooey-lava" color-interpolation-filters="sRGB">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="9" result="blur" />
+        <feColorMatrix in="blur" mode="matrix"
+          values="1 0 0 0 0
+                  0 1 0 0 0
+                  0 0 1 0 0
+                  0 0 0 24 -9" result="goo" />
+        <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- Fondo atmosférico dinámico -->
+  <div class="ambient-backdrop"></div>
+  <canvas id="ambientParticles"></canvas>
+
+  <!-- Encabezado Académico -->
+  <header class="relative z-10 text-center max-w-xl mx-auto">
+    <div class="inline-block px-4 py-0.5 rounded-full course-badge text-xs sm:text-sm font-bold tracking-widest uppercase mb-1">
+      Quinto TI
+    </div>
+    <h1 class="font-display text-2xl sm:text-4xl font-bold uppercase academic-title leading-tight">
+      Alexander Párraga
+    </h1>
+    <p class="mt-0.5 text-xs sm:text-base font-medium tracking-wide text-slate-300">
+      Docente: <span id="docenteHighlight" class="font-semibold transition-colors duration-300" style="color: #ff9e2c;">Ing. Ricardo Celi</span>
+    </p>
+  </header>
+
+  <!-- Lámpara de Lava Animada -->
+  <main class="lamp-stage my-1">
+    <div class="lamp-aura"></div>
+    <div class="lamp-cap"></div>
+
+    <div class="lamp-glass-shell" id="lampShell" title="Toca o desliza sobre el cristal para generar calor y burbujas">
+      <div class="lamp-glass" id="lampGlass">
+        <!-- Capa de cera animada -->
+        <div class="gooey-stage">
+          <canvas id="lavaCanvas"></canvas>
+        </div>
+
+        <!-- Brillo inferior de la bombilla -->
+        <div class="bulb-glow-floor"></div>
+
+        <!-- Ilustración vectorial de contornos y reflejos -->
+        <svg class="glass-illustration-overlay" viewBox="0 0 196 326" preserveAspectRatio="none">
+          <polygon points="51,1 145,1 191,235 162,325 34,325 5,235"
+                   fill="none" stroke="rgba(255,255,255,0.34)" stroke-width="2.5" stroke-linejoin="round" />
+          <polygon points="53,3 143,3 188,234 160,323 36,323 8,234"
+                   fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="4" stroke-linejoin="round" />
+          <path d="M 54 18 L 21 224 Q 20 233 26 242 L 36 268"
+                fill="none" stroke="rgba(255,255,255,0.44)" stroke-width="5.5" stroke-linecap="round" />
+          <circle cx="57" cy="10" r="2.8" fill="rgba(255,255,255,0.68)" />
+          <path d="M 146 26 L 174 220"
+                fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="2.8" stroke-linecap="round" />
+          <ellipse cx="98" cy="13" rx="42" ry="3.8" fill="rgba(255,255,255,0.16)" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="lamp-base-top">
+      <div class="base-indicator-dots">
+        <span class="base-dot"></span>
+        <span class="base-dot"></span>
+        <span class="base-dot"></span>
+      </div>
+    </div>
+    <div class="lamp-base-bottom"></div>
+    <div class="floor-shadow"></div>
+
+    <span class="text-[11px] sm:text-xs text-slate-400 tracking-wide mt-1.5">
+      Toca o desliza sobre el cristal para impulsar nuevas burbujas
+    </span>
+  </main>
+
+  <!-- Barra Compacta Inferior con 16 Colores y Controles -->
+  <footer class="relative z-10 w-full max-w-lg mx-auto mb-0.5">
+    <div class="controls-panel rounded-2xl px-3.5 py-2.5 flex flex-col gap-2.5">
+      <!-- Encabezado de paleta + Cuadrícula de 16 colores -->
+      <div class="flex flex-col gap-2 border-b border-white/10 pb-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+            Color de lava (16 tonos)
+          </span>
+          <span id="colorNameLabel" class="text-xs font-bold uppercase tracking-wider text-[#ff9e2c] transition-colors duration-300">
+            Naranja
+          </span>
+        </div>
+        <div id="colorButtonsContainer" class="color-grid"></div>
+      </div>
+
+      <!-- Velocidad / Calor + Ciclo Automático + Pausar -->
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2 flex-1 min-w-[130px]">
+          <label id="speedLabel" for="speedSlider" class="text-[11px] font-bold uppercase tracking-wider text-[#ff9e2c] whitespace-nowrap transition-colors duration-300">
+            Calor
+          </label>
+          <input id="speedSlider" type="range" min="0.55" max="1.85" step="0.05" value="1.15" class="w-full">
+        </div>
+
+        <div class="flex items-center gap-1.5">
+          <button id="autoCycleBtn" class="action-btn px-2.5 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wider bg-white/10 text-slate-200 border border-white/25 hover:bg-white/20 active:scale-95 cursor-pointer">
+            Ciclo Auto: OFF
+          </button>
+          <button id="pauseToggleBtn" class="action-btn px-3 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wider bg-white/10 text-white border border-white/25 hover:bg-white/20 active:scale-95 cursor-pointer">
+            Pausar
+          </button>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const lavaCanvas = document.getElementById('lavaCanvas');
+      const lavaCtx = lavaCanvas.getContext('2d');
+      const particleCanvas = document.getElementById('ambientParticles');
+      const particleCtx = particleCanvas.getContext('2d');
+      const lampShell = document.getElementById('lampShell');
+      const lampGlass = document.getElementById('lampGlass');
+      const colorButtonsContainer = document.getElementById('colorButtonsContainer');
+      const colorNameLabel = document.getElementById('colorNameLabel');
+      const docenteHighlight = document.getElementById('docenteHighlight');
+      const speedLabel = document.getElementById('speedLabel');
+      const speedSlider = document.getElementById('speedSlider');
+      const autoCycleBtn = document.getElementById('autoCycleBtn');
+      const pauseToggleBtn = document.getElementById('pauseToggleBtn');
+
+      // Paleta completa de 16 colores solicitados
+      const COLORS = [
+        {
+          id: 'naranja',
+          name: 'Naranja',
+          main: '#ff6a00',
+          light: '#ff9e2c',
+          dark: '#b82900',
+          liqTop: '#240c03',
+          liqBot: '#4f1b06',
+          glow: 'rgba(255, 106, 0, 0.58)',
+          glowSoft: 'rgba(255, 158, 44, 0.24)'
+        },
+        {
+          id: 'amarillo',
+          name: 'Amarillo',
+          main: '#ffd600',
+          light: '#fff176',
+          dark: '#c79100',
+          liqTop: '#241c03',
+          liqBot: '#4a3906',
+          glow: 'rgba(255, 214, 0, 0.58)',
+          glowSoft: 'rgba(255, 241, 118, 0.24)'
+        },
+        {
+          id: 'azul',
+          name: 'Azul',
+          main: '#0077ff',
+          light: '#5ce1ff',
+          dark: '#0039a6',
+          liqTop: '#04122b',
+          liqBot: '#09285c',
+          glow: 'rgba(0, 119, 255, 0.60)',
+          glowSoft: 'rgba(92, 225, 255, 0.25)'
+        },
+        {
+          id: 'rojo',
+          name: 'Rojo',
+          main: '#ff1744',
+          light: '#ff616f',
+          dark: '#9b0000',
+          liqTop: '#260409',
+          liqBot: '#540814',
+          glow: 'rgba(255, 23, 68, 0.60)',
+          glowSoft: 'rgba(255, 97, 111, 0.25)'
+        },
+        {
+          id: 'cafe',
+          name: 'Café',
+          main: '#8d4925',
+          light: '#c67c4e',
+          dark: '#4e240e',
+          liqTop: '#1c1009',
+          liqBot: '#3b2213',
+          glow: 'rgba(198, 124, 78, 0.55)',
+          glowSoft: 'rgba(141, 73, 37, 0.25)'
+        },
+        {
+          id: 'verde',
+          name: 'Verde',
+          main: '#00c853',
+          light: '#69f0ae',
+          dark: '#00701a',
+          liqTop: '#042110',
+          liqBot: '#094722',
+          glow: 'rgba(0, 200, 83, 0.58)',
+          glowSoft: 'rgba(105, 240, 174, 0.24)'
+        },
+        {
+          id: 'negro',
+          name: 'Negro',
+          main: '#242736',
+          light: '#596078',
+          dark: '#0c0d14',
+          liqTop: '#2e190b',
+          liqBot: '#733f1b',
+          glow: 'rgba(148, 163, 184, 0.45)',
+          glowSoft: 'rgba(214, 132, 68, 0.24)'
+        },
+        {
+          id: 'blanco',
+          name: 'Blanco',
+          main: '#ffffff',
+          light: '#e2e8f0',
+          dark: '#94a3b8',
+          liqTop: '#141926',
+          liqBot: '#2c3652',
+          glow: 'rgba(255, 255, 255, 0.62)',
+          glowSoft: 'rgba(226, 232, 240, 0.26)'
+        },
+        {
+          id: 'celeste',
+          name: 'Celeste',
+          main: '#00e5ff',
+          light: '#84ffff',
+          dark: '#008ba3',
+          liqTop: '#041e24',
+          liqBot: '#094352',
+          glow: 'rgba(0, 229, 255, 0.60)',
+          glowSoft: 'rgba(132, 255, 255, 0.25)'
+        },
+        {
+          id: 'morado',
+          name: 'Morado',
+          main: '#8e24aa',
+          light: '#ce93d8',
+          dark: '#4a148c',
+          liqTop: '#190624',
+          liqBot: '#380d52',
+          glow: 'rgba(168, 85, 247, 0.60)',
+          glowSoft: 'rgba(206, 147, 216, 0.25)'
+        },
+        {
+          id: 'rosado',
+          name: 'Rosado',
+          main: '#ff4081',
+          light: '#ff80ab',
+          dark: '#ad1457',
+          liqTop: '#260714',
+          liqBot: '#540f2c',
+          glow: 'rgba(255, 64, 129, 0.60)',
+          glowSoft: 'rgba(255, 128, 171, 0.25)'
+        },
+        {
+          id: 'turquesa',
+          name: 'Turquesa',
+          main: '#00bfa5',
+          light: '#64ffda',
+          dark: '#00695c',
+          liqTop: '#04211d',
+          liqBot: '#094a41',
+          glow: 'rgba(0, 191, 165, 0.60)',
+          glowSoft: 'rgba(100, 255, 218, 0.24)'
+        },
+        {
+          id: 'dorado',
+          name: 'Dorado',
+          main: '#d4af37',
+          light: '#ffe082',
+          dark: '#8c6d1f',
+          liqTop: '#211906',
+          liqBot: '#47360d',
+          glow: 'rgba(234, 179, 8, 0.58)',
+          glowSoft: 'rgba(255, 224, 130, 0.25)'
+        },
+        {
+          id: 'plata',
+          name: 'Gris / Plata',
+          main: '#94a3b8',
+          light: '#e2e8f0',
+          dark: '#475569',
+          liqTop: '#12151c',
+          liqBot: '#272e3d',
+          glow: 'rgba(148, 163, 184, 0.56)',
+          glowSoft: 'rgba(226, 232, 240, 0.22)'
+        },
+        {
+          id: 'magenta',
+          name: 'Magenta',
+          main: '#e040fb',
+          light: '#ea80fc',
+          dark: '#8e0038',
+          liqTop: '#240529',
+          liqBot: '#4d0a57',
+          glow: 'rgba(224, 64, 251, 0.62)',
+          glowSoft: 'rgba(234, 128, 252, 0.25)'
+        },
+        {
+          id: 'lima',
+          name: 'Lima',
+          main: '#aeea00',
+          light: '#eeff41',
+          dark: '#64dd17',
+          liqTop: '#162103',
+          liqBot: '#2f4706',
+          glow: 'rgba(174, 234, 0, 0.60)',
+          glowSoft: 'rgba(238, 255, 65, 0.24)'
+        }
+      ];
+
+      let currentColorIndex = 0;
+      let activeColor = COLORS[0];
+      let heatSpeed = 1.15;
+      let isPaused = false;
+      let isAutoCycling = false;
+      let autoCycleTimer = null;
+
+      const W = 220;
+      const H = 350;
+      lavaCanvas.width = W;
+      lavaCanvas.height = H;
+
+      function selectColorByIndex(index, stopAuto = false) {
+        if (stopAuto && isAutoCycling) {
+          toggleAutoCycle(false);
+        }
+        currentColorIndex = (index + COLORS.length) % COLORS.length;
+        activeColor = COLORS[currentColorIndex];
+
+        const root = document.documentElement.style;
+        root.setProperty('--wax-main', activeColor.main);
+        root.setProperty('--wax-light', activeColor.light);
+        root.setProperty('--wax-dark', activeColor.dark);
+        root.setProperty('--liquid-top', activeColor.liqTop);
+        root.setProperty('--liquid-bot', activeColor.liqBot);
+        root.setProperty('--glow-color', activeColor.glow);
+        root.setProperty('--glow-soft', activeColor.glowSoft);
+
+        const textAccent = activeColor.id === 'negro' ? '#cbd5e1' : activeColor.light;
+        colorNameLabel.textContent = activeColor.name;
+        colorNameLabel.style.color = textAccent;
+        docenteHighlight.style.color = textAccent;
+        speedLabel.style.color = textAccent;
+
+        document.querySelectorAll('.color-btn').forEach((btn, idx) => {
+          btn.classList.toggle('active', idx === currentColorIndex);
+        });
+      }
+
+      function toggleAutoCycle(forceState) {
+        isAutoCycling = typeof forceState === 'boolean' ? forceState : !isAutoCycling;
+        if (isAutoCycling) {
+          autoCycleBtn.textContent = 'Ciclo Auto: ON';
+          autoCycleBtn.classList.add('cycle-on');
+          autoCycleTimer = setInterval(() => {
+            if (!isPaused) {
+              selectColorByIndex(currentColorIndex + 1, false);
+            }
+          }, 2600);
+        } else {
+          autoCycleBtn.textContent = 'Ciclo Auto: OFF';
+          autoCycleBtn.classList.remove('cycle-on');
+          if (autoCycleTimer) {
+            clearInterval(autoCycleTimer);
+            autoCycleTimer = null;
+          }
+        }
+      }
+
+      // Renderizar los 16 botones circulares
+      COLORS.forEach((col, index) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'color-btn' + (index === 0 ? ' active' : '');
+        btn.title = col.name;
+        btn.setAttribute('aria-label', col.name);
+        btn.style.background = `radial-gradient(circle at 32% 32%, ${col.light}, ${col.main} 62%, ${col.dark})`;
+        btn.style.setProperty('--btn-glow', col.glow);
+        btn.addEventListener('click', () => selectColorByIndex(index, true));
+        colorButtonsContainer.appendChild(btn);
+      });
+
+      // Clase física de gotas de cera con convección natural fluida
+      class LavaBlob {
+        constructor(options = {}) {
+          this.x = options.x ?? W * 0.5;
+          this.y = options.y ?? H * 0.5;
+          this.baseR = options.r ?? 21;
+          this.r = this.baseR;
+          this.vx = (Math.random() - 0.5) * 0.5;
+          this.vy = options.vy ?? ((Math.random() - 0.5) * 0.95);
+          this.temp = options.temp ?? (1.0 - (this.y / H));
+          this.wobblePhase = Math.random() * Math.PI * 2;
+          this.wobbleSpeed = 0.03 + Math.random() * 0.025;
+          this.stretch = 1.0;
+          this.isAnchor = options.isAnchor ?? false;
+          this.anchorPos = options.anchorPos ?? 'bottom';
+          this.temporary = options.temporary ?? false;
+          this.life = 1.0;
+        }
+
+        update() {
+          this.wobblePhase += this.wobbleSpeed * heatSpeed;
+
+          if (this.isAnchor) {
+            const targetY = this.anchorPos === 'bottom' ? H - 14 : 18;
+            this.y += (targetY - this.y) * 0.08;
+            this.x = W * 0.5 + Math.sin(this.wobblePhase * 0.65) * (this.anchorPos === 'bottom' ? 23 : 10);
+            this.r = this.baseR * (1 + Math.sin(this.wobblePhase) * 0.11);
+            this.stretch = 1.0 + Math.cos(this.wobblePhase) * 0.08;
+            return true;
+          }
+
+          if (this.temporary) {
+            this.life -= 0.0045 * heatSpeed;
+            this.r = this.baseR * Math.max(0, Math.min(1, this.life * 2.2));
+            if (this.life <= 0) return false;
+          } else {
+            this.r = this.baseR * (1 + Math.sin(this.wobblePhase) * 0.09);
+          }
+
+          const normY = this.y / H;
+
+          // Calentamiento inferior y enfriamiento superior
+          if (normY > 0.78) {
+            this.temp += 0.0095 * heatSpeed;
+          } else if (normY < 0.22) {
+            this.temp -= 0.0095 * heatSpeed;
+          } else {
+            this.temp += (normY - 0.5) * 0.0022 * heatSpeed;
+          }
+          this.temp = Math.max(0.0, Math.min(1.0, this.temp));
+
+          // Flotabilidad natural y fluida
+          const buoyancy = (0.5 - this.temp) * 2.2 * heatSpeed;
+          this.vy += (buoyancy - this.vy) * 0.046;
+
+          const currentX = Math.sin(this.wobblePhase * 0.85 + normY * 4.2) * 0.52 * heatSpeed;
+          this.vx += (currentX - this.vx) * 0.046;
+
+          this.x += this.vx;
+          this.y += this.vy;
+
+          const speedMag = Math.hypot(this.vx, this.vy);
+          const targetStretch = 1.0 + Math.min(0.28, speedMag * 0.16);
+          this.stretch += (targetStretch - this.stretch) * 0.12;
+
+          // Contención cónica interna del cristal
+          const halfWidthAtY = (0.24 + normY * 0.25) * W;
+          const leftBound = W * 0.5 - halfWidthAtY + this.r * 0.55;
+          const rightBound = W * 0.5 + halfWidthAtY - this.r * 0.55;
+
+          if (this.x < leftBound) {
+            this.x = leftBound;
+            this.vx = Math.abs(this.vx) * 0.55;
+          } else if (this.x > rightBound) {
+            this.x = rightBound;
+            this.vx = -Math.abs(this.vx) * 0.55;
+          }
+
+          if (this.y < 22) {
+            this.y = 22;
+            this.vy = Math.abs(this.vy) * 0.35;
+            this.temp = Math.min(this.temp, 0.22);
+          } else if (this.y > H - 22) {
+            this.y = H - 22;
+            this.vy = -Math.abs(this.vy) * 0.35;
+            this.temp = Math.max(this.temp, 0.78);
+          }
+
+          return true;
+        }
+
+        draw(ctx) {
+          ctx.save();
+          ctx.translate(this.x, this.y);
+          ctx.scale(1 / Math.sqrt(this.stretch), Math.sqrt(this.stretch));
+
+          const grad = ctx.createRadialGradient(
+            -this.r * 0.28,
+            -this.r * 0.28,
+            this.r * 0.12,
+            0,
+            0,
+            this.r
+          );
+          grad.addColorStop(0.0, activeColor.light);
+          grad.addColorStop(0.58, activeColor.main);
+          grad.addColorStop(1.0, activeColor.dark);
+
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(0, 0, Math.max(1, this.r), 0, Math.PI * 2);
+          ctx.fill();
+
+          if (this.r > 12) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
+            ctx.beginPath();
+            ctx.ellipse(-this.r * 0.32, -this.r * 0.32, this.r * 0.22, this.r * 0.12, -Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          ctx.restore();
+        }
+      }
+
+      const blobs = [
+        new LavaBlob({ x: W * 0.5, y: H - 14, r: 42, isAnchor: true, anchorPos: 'bottom' }),
+        new LavaBlob({ x: W * 0.42, y: H - 12, r: 30, isAnchor: true, anchorPos: 'bottom' }),
+        new LavaBlob({ x: W * 0.5, y: 18, r: 26, isAnchor: true, anchorPos: 'top' }),
+
+        // Gotas grandes y medianas
+        new LavaBlob({ x: W * 0.46, y: H * 0.76, r: 25, temp: 0.88, vy: -0.78 }),
+        new LavaBlob({ x: W * 0.55, y: H * 0.58, r: 22, temp: 0.74, vy: -0.62 }),
+        new LavaBlob({ x: W * 0.43, y: H * 0.40, r: 24, temp: 0.25, vy: 0.58 }),
+        new LavaBlob({ x: W * 0.54, y: H * 0.25, r: 19, temp: 0.15, vy: 0.72 }),
+        new LavaBlob({ x: W * 0.48, y: H * 0.66, r: 16, temp: 0.82, vy: -0.68 }),
+
+        // Burbujas pequeñas dinámicas
+        new LavaBlob({ x: W * 0.38, y: H * 0.52, r: 11.5, temp: 0.78, vy: -0.88 }),
+        new LavaBlob({ x: W * 0.60, y: H * 0.46, r: 10.5, temp: 0.22, vy: 0.82 }),
+        new LavaBlob({ x: W * 0.50, y: H * 0.32, r: 12.5, temp: 0.68, vy: -0.52 }),
+        new LavaBlob({ x: W * 0.44, y: H * 0.82, r: 13.5, temp: 0.92, vy: -0.92 }),
+        new LavaBlob({ x: W * 0.57, y: H * 0.70, r: 9.5, temp: 0.85, vy: -0.76 })
+      ];
+
+      let lastSpawnTime = 0;
+      function interactWithLamp(clientX, clientY, spawnNew = true) {
+        const rect = lampGlass.getBoundingClientRect();
+        const lx = ((clientX - rect.left) / rect.width) * W;
+        const ly = ((clientY - rect.top) / rect.height) * H;
+
+        for (let i = 0; i < blobs.length; i++) {
+          const b = blobs[i];
+          if (b.isAnchor) continue;
+          const dx = b.x - lx;
+          const dy = b.y - ly;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 72) {
+            const force = (1 - dist / 72);
+            b.vx += (dx / (dist || 1)) * force * 1.35;
+            b.vy -= force * 1.45;
+            b.temp = Math.min(1.0, b.temp + force * 0.35);
+          }
+        }
+
+        const now = performance.now();
+        if (spawnNew && now - lastSpawnTime > 120 && blobs.length < 24) {
+          lastSpawnTime = now;
+          blobs.push(new LavaBlob({
+            x: Math.max(44, Math.min(W - 44, lx + (Math.random() - 0.5) * 18)),
+            y: Math.max(34, Math.min(H - 34, ly)),
+            r: 9.5 + Math.random() * 8.5,
+            temp: 0.92,
+            vy: -1.1 - Math.random() * 0.5,
+            temporary: true
+          }));
+        }
+      }
+
+      let pointerActive = false;
+      lampShell.addEventListener('pointerdown', (e) => {
+        pointerActive = true;
+        interactWithLamp(e.clientX, e.clientY, true);
+      });
+      window.addEventListener('pointerup', () => { pointerActive = false; });
+      lampShell.addEventListener('pointermove', (e) => {
+        if (pointerActive) interactWithLamp(e.clientX, e.clientY, true);
+      });
+
+      speedSlider.addEventListener('input', (e) => {
+        heatSpeed = parseFloat(e.target.value);
+      });
+
+      autoCycleBtn.addEventListener('click', () => {
+        toggleAutoCycle();
+      });
+
+      pauseToggleBtn.addEventListener('click', () => {
+        isPaused = !isPaused;
+        pauseToggleBtn.textContent = isPaused ? 'Reanudar' : 'Pausar';
+      });
+
+      // Partículas ambientales flotantes
+      const ambientDust = [];
+      function initAmbientParticles() {
+        particleCanvas.width = window.innerWidth;
+        particleCanvas.height = window.innerHeight;
+        ambientDust.length = 0;
+        const count = Math.min(38, Math.floor((window.innerWidth * window.innerHeight) / 25000));
+        for (let i = 0; i < count; i++) {
+          ambientDust.push({
+            x: Math.random() * particleCanvas.width,
+            y: Math.random() * particleCanvas.height,
+            r: 1.2 + Math.random() * 2.2,
+            vy: -0.18 - Math.random() * 0.32,
+            vx: (Math.random() - 0.5) * 0.2,
+            alpha: 0.16 + Math.random() * 0.45,
+            phase: Math.random() * Math.PI * 2
+          });
+        }
+      }
+      window.addEventListener('resize', initAmbientParticles);
+      initAmbientParticles();
+
+      function renderAmbientParticles() {
+        const pw = particleCanvas.width;
+        const ph = particleCanvas.height;
+        particleCtx.clearRect(0, 0, pw, ph);
+
+        for (let i = 0; i < ambientDust.length; i++) {
+          const p = ambientDust[i];
+          if (!isPaused) {
+            p.x += p.vx;
+            p.y += p.vy * (0.6 + heatSpeed * 0.4);
+            p.phase += 0.025;
+            if (p.y < -10) {
+              p.y = ph + 10;
+              p.x = Math.random() * pw;
+            }
+          }
+          const twinkle = p.alpha * (0.65 + 0.35 * Math.sin(p.phase));
+          particleCtx.fillStyle = activeColor.light;
+          particleCtx.globalAlpha = twinkle;
+          particleCtx.beginPath();
+          particleCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          particleCtx.fill();
+        }
+        particleCtx.globalAlpha = 1.0;
+      }
+
+      function animate() {
+        if (!isPaused) {
+          lavaCtx.clearRect(0, 0, W, H);
+          for (let i = blobs.length - 1; i >= 0; i--) {
+            const alive = blobs[i].update();
+            if (!alive) {
+              blobs.splice(i, 1);
+            } else {
+              blobs[i].draw(lavaCtx);
+            }
+          }
+        }
+        renderAmbientParticles();
+        requestAnimationFrame(animate);
+      }
+
+      window.onload = function () {
+        animate();
+      };
+    })();
+  </script>
+</body>
+</html>
